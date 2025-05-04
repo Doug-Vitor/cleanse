@@ -7,8 +7,14 @@ module Cleanse
     end
 
     def self.clean!(cleanable_class)
-      cleanable_class.constants.each do |constant|
-        cleanable_class.include(constant) if !cleanable_class.abstract_class? && constant.is_a?(Module)
+      return if cleanable_class.abstract_class?
+
+      includable_modules = cleanable_class.constants.map do |constant|
+        cleanable_class.const_get(constant)
+      end
+
+      includable_modules.each do |constant|
+        cleanable_class.include(constant) if constant.instance_of?(Module)
       end
     end
   end

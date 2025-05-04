@@ -4,17 +4,23 @@ require_relative 'cleanse/version'
 require_relative 'cleanse/cleaner'
 
 module Cleanse
-  if defined?(ActiveRecord::Base)
-    parent_classes = children_of(ActiveRecord::Base).flat_map do |parent_class|
-      children_of(parent_class)
-    end
+  def self.children_of(parent_class)
+    parent_class.descendants
+  end
 
-    parent_classes.each do |parent_class|
-      parent_class.include(Cleanse::Cleaner)
+  if defined?(ActiveSupport)
+    ActiveSupport.on_load(:after_initialize) do
+      Cleanse.clean_rails_models!
     end
   end
 
-  def children_of(parent_class)
-    parent_class.abstract_class? ? [] : parent.subclasses
+  def self.clean_rails_models!
+    parent_class = 'ApplicationRecord'.safe_constantize || 'ActiveRecord::Base'.safe_constantize || nil
+    return unless parent_class
+
+    cleanable_classes = children_of(parent_class)
+    cleanable_classes.each do |cleanable_class|
+      cleanable_class.include(Cleanse::Cleaner)
+    end
   end
 end
