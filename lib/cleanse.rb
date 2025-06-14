@@ -18,7 +18,7 @@ module Cleanse
     parent_class = 'ApplicationRecord'.safe_constantize || 'ActiveRecord::Base'.safe_constantize || nil
     return unless parent_class
 
-    cleanable_classes = children_of(parent_class)
+    cleanable_classes = Cleanse.children_of(parent_class)
     cleanable_classes.each do |cleanable_class|
       cleanable_class.include(Cleanse::Cleaner)
     end
